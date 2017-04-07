@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title></title>
+</head>
+<link href="http://cdn.bootcss.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet">
+<body style="padding-top: 70px;">
+
+<nav class="navbar navbar-inverse navbar-fixed-top">
+    <div class="container-fluid">
+        <div class="navbar-header">
+            <a class="navbar-brand" href="#">微信公众号爬虫</a>
+        </div>
+    </div>
+</nav>
+<div class="container-fluid">
+    <div id="alert" class="alert alert-danger" role="alert" style="display: none;">
+
+    </div>
+</div>
+
+<div class="container-fluid">
+    <div class="row">
+        <div id="crawler" class="col-md-7">
+            <div class="panel panel-primary">
+                <div class="panel-heading">
+                    <h3 class="panel-title">日志</h3>
+                </div>
+                <div class="panel-body" style="height: 600px;overflow: scroll">
+                    <div class="row pull-right" style="margin-right: 10px;">
+                        <button v-show="status==0" type="button" class="btn btn-sm btn-success" v-on:click="start">开始
+                        </button>
+                        <button v-show="status==1" type="button" class="btn btn-sm btn-warning" v-on:click="stop">停止
+                        </button>
+                    </div>
+                    <div v-html="log"></div>
+                </div>
+            </div>
+        </div>
+
+        <div id="sources" class="col-md-5">
+            <div>
+                <h2 class="sub-header" style="display: inline">公众号渠道</h2>
+                <button type="button" v-on:click="addModal" class="btn btn-sm btn-success pull-right"
+                        style="margin-right: 25px;">添加
+                </button>
+            </div>
+            <div class="clearfix"></div>
+            <div class="table-responsive" style="height: 600px;overflow: scroll">
+                <table class="table table-striped">
+                    <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>微信号</th>
+                        <th>名称</th>
+                        <th>操作</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr v-for="(source, index) in sources">
+                        <td>{{source.id}}</td>
+                        <td>{{source.source}}</td>
+                        <td>{{source.name}}</td>
+                        <td>
+                            <button type="button" v-bind:value="source.id" v-on:click="removeModal"
+                                    class="btn btn-sm btn-danger">删除
+                            </button>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div id="add-source-modal" class="modal fade" tabindex="-1" role="dialog">
+                <div class="modal-dialog" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                                    aria-hidden="true">&times;</span></button>
+                            <h4 class="modal-title">添加渠道</h4>
+                        </div>
+                        <div class="modal-body">
+                            <div class="col-sm-offset-1 col-sm-10">
+                                <form class="form-horizontal">
+                                    <div class="form-group">
+                                        <label for="add-source-id" class="col-sm-2 control-label">渠道ID</label>
+                                        <div class="col-sm-8">
+                                            <input id="add-source-id" type="text" class="form-control"
+                                                   v-model="sourceId">
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="add-source-code" class="col-sm-2 control-label">渠道号</label>
+                                        <div class="col-sm-8">
+                                            <input id="add-source-code" type="text" class="form-control"
+                                                   placeholder="渠道号" v-model="source">
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="add-source-name" class="col-sm-2 control-label">渠道名</label>
+                                        <div class="col-sm-8">
+                                            <input id="add-source-name" type="text" class="form-control"
+                                                   placeholder="渠道名" v-model="name">
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+                            <div class="clearfix"></div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+                            <button type="button" class="btn btn-primary" v-on:click="add">添加</button>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <div id="remove-source-modal" class="modal fade" tabindex="-1" role="dialog">
+                <div class="modal-dialog" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
+                                    aria-hidden="true">&times;</span></button>
+                            <h4 class="modal-title">删除渠道</h4>
+                        </div>
+                        <div class="modal-body">
+                            <p>确定删除该渠道吗?</p>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+                            <button type="button" class="btn btn-danger" v-on:click="remove">删除</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script src="http://cdn.bootcss.com/vue/2.2.6/vue.js"></script>
+<script src="http://cdn.bootcss.com/jquery/3.2.1/jquery.min.js"></script>
+<script src="http://cdn.bootcss.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+
+<script>
+
+    var loadLog = function () {
+        if (crawlerVm.status == 1) {
+            $.getJSON('/crawl/log', function (data) {
+                crawlerVm.log = data.data.log.replace(/\n/g, '<br>');
+                crawlerVm.status = data.data.status;
+                setTimeout(function () {
+                    loadLog();
+                }, 5000);
+            });
+        }
+    };
+
+    var loadSource = function (obj) {
+        $.getJSON('/source/list', function (data) {
+            obj.sources = data.data;
+        });
+    };
+
+    var loadStatus = function (obj) {
+        $.getJSON('/crawl/status', function (data) {
+            obj.status = data.data;
+            if (obj.status == 1) {
+                loadLog();
+            }
+        });
+    };
+
+    var showAlert = function (text) {
+        var alert = $('#alert');
+        alert.text(text);
+        alert.show();
+        setTimeout(function () {
+            alert.hide();
+        }, 3000);
+    };
+
+    var sourceVm = new Vue({
+        el: '#sources',
+        data: {
+            sources: [],
+            sourceId: '',
+            source: '',
+            name: '',
+            removeSourceId: ''
+        },
+        created: function () {
+            loadSource(this);
+        },
+        methods: {
+            addModal: function () {
+                this.sourceId = '';
+                this.source = '';
+                this.name = '';
+                $('#add-source-modal').modal('show');
+            },
+            removeModal: function () {
+                this.removeSourceId = event.target.value;
+                $('#remove-source-modal').modal('show');
+            },
+            add: function () {
+                var self = this;
+                $.getJSON('/source/add', {
+                    sourceId: this.sourceId,
+                    source: this.source,
+                    name: this.name
+                }, function (data) {
+                    console.log(data);
+                    if (data.code == 0) {
+                        loadSource(self);
+                    } else {
+                        showAlert(data.data);
+                    }
+                    $('#add-source-modal').modal('hide');
+                });
+            },
+            remove: function (event) {
+                var self = this;
+                $.getJSON('/source/remove', {
+                    sourceId: self.removeSourceId
+                }, function (data) {
+                    loadSource(self);
+                    $('#remove-source-modal').modal('hide');
+                });
+            }
+        }
+    });
+
+    var crawlerVm = new Vue({
+        el: '#crawler',
+        data: {
+            log: '',
+            status: 0
+        },
+        created: function () {
+            var obj = this;
+            loadStatus(obj);
+        },
+        methods: {
+            start: function () {
+                this.status = 1;
+                $.getJSON('/crawl/start', function (data) {
+                    loadLog();
+                });
+            },
+            stop: function () {
+                this.status = 0;
+                $.getJSON('/crawl/stop');
+            }
+        }
+    });
+
+
+</script>
+
+</body>
+</html>
