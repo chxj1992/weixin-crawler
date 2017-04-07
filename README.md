@@ -22,3 +22,4 @@ $ python run app.py
 
 在浏览器中打开 `http://localhost:5000/`
 
+![](screen-shot.png)
