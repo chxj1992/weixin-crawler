@@ -51,7 +51,6 @@
                 <table class="table table-striped">
                     <thead>
                     <tr>
-                        <th>ID</th>
                         <th>微信号</th>
                         <th>名称</th>
                         <th>操作</th>
@@ -59,11 +58,10 @@
                     </thead>
                     <tbody>
                     <tr v-for="(source, index) in sources">
-                        <td>{{source.id}}</td>
                         <td>{{source.source}}</td>
                         <td>{{source.name}}</td>
                         <td>
-                            <button type="button" v-bind:value="source.id" v-on:click="removeModal"
+                            <button type="button" v-bind:value="source.source" v-on:click="removeModal"
                                     class="btn btn-sm btn-danger">删除
                             </button>
                         </td>
@@ -83,13 +81,6 @@
                         <div class="modal-body">
                             <div class="col-sm-offset-1 col-sm-10">
                                 <form class="form-horizontal">
-                                    <div class="form-group">
-                                        <label for="add-source-id" class="col-sm-2 control-label">渠道ID</label>
-                                        <div class="col-sm-8">
-                                            <input id="add-source-id" type="text" class="form-control"
-                                                   v-model="sourceId">
-                                        </div>
-                                    </div>
                                     <div class="form-group">
                                         <label for="add-source-code" class="col-sm-2 control-label">渠道号</label>
                                         <div class="col-sm-8">
@@ -186,29 +177,26 @@
         el: '#sources',
         data: {
             sources: [],
-            sourceId: '',
             source: '',
             name: '',
-            removeSourceId: ''
+            removeSource: ''
         },
         created: function () {
             loadSource(this);
         },
         methods: {
             addModal: function () {
-                this.sourceId = '';
                 this.source = '';
                 this.name = '';
                 $('#add-source-modal').modal('show');
             },
             removeModal: function () {
-                this.removeSourceId = event.target.value;
+                this.removeSource = event.target.value;
                 $('#remove-source-modal').modal('show');
             },
             add: function () {
                 var self = this;
                 $.getJSON('/source/add', {
-                    sourceId: this.sourceId,
                     source: this.source,
                     name: this.name
                 }, function (data) {
@@ -224,7 +212,7 @@
             remove: function (event) {
                 var self = this;
                 $.getJSON('/source/remove', {
-                    sourceId: self.removeSourceId
+                    source: self.removeSource
                 }, function (data) {
                     loadSource(self);
                     $('#remove-source-modal').modal('hide');

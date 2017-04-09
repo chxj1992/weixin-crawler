@@ -4,6 +4,8 @@ from os.path import dirname
 
 from tinydb import TinyDB, Query
 
+import time
+
 
 def db():
     return TinyDB(dirname(__file__) + '/db.json')
@@ -37,22 +39,23 @@ def source_table():
     return db().table('sources')
 
 
-def add_source(source_id, source, name):
-    delete_source(source_id)
-    source_table().insert({'id': source_id, 'source': source, 'name': name})
+def add_source(source, name):
+    delete_source(source)
+    source_table().insert({'source': source, 'name': name, 'time': time.time()})
 
 
-def delete_source(source_id):
-    source_table().remove(Query().id == source_id)
+def delete_source(source):
+    source_table().remove(Query().source == source)
 
 
-def update_source(source_id, source, name):
-    source_table().update({'source': source, 'name': name}, Query().id == source_id)
+def update_source(source, name):
+    source_table().update({'name': name, 'time': time.time()}, Query().source == source)
 
 
-def get_source(source_id):
-    return source_table().get(Query().id == source_id)
+def get_source(source):
+    return source_table().get(Query().source == source)
 
 
 def source_list():
-    return sorted(source_table().all(), key=lambda source: source['id'], reverse=True)
+    return sorted(source_table().all(), key=lambda source: source['time'], reverse=True)
+

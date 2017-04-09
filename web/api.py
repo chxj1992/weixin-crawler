@@ -39,31 +39,32 @@ def crawl_start():
 
 @api.route("/source/add")
 def source_add():
-    validate = util.validate(request.args, ['sourceId', 'source', 'name'])
+    validate = util.validate(request.args, ['source', 'name'])
     if validate is not True:
         return util.response(1, 'params error : ' + validate)
-    db.add_source(request.args['sourceId'], request.args['source'], request.args['name'])
+    db.add_source(request.args['source'], request.args['name'])
     return util.response(0, 'source added')
 
 
 @api.route("/source/remove")
 def source_remove():
-    validate = util.validate(request.args, ['sourceId'])
+    validate = util.validate(request.args, ['source'])
     if validate is not True:
         return util.response(1, 'params error : ' + validate)
-    db.delete_source(request.args['sourceId'])
+    db.delete_source(request.args['source'])
     return util.response(0, 'source removed')
 
 
 @api.route("/source/update")
 def source_update():
-    validate = util.validate(request.args, ['sourceId', 'source', 'name'])
+    validate = util.validate(request.args, ['source', 'name'])
     if validate is not True:
         return util.response(1, 'params error : ' + validate)
-    db.update_source(request.args['sourceId'], request.args['source'], request.args['name'])
+    db.update_source(request.args['source'], request.args['name'])
     return util.response(0, 'source updated')
 
 
 @api.route("/source/list")
 def source_list():
     return util.response(0, db.source_list())
+
